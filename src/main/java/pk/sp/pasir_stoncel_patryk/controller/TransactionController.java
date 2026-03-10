@@ -1,9 +1,11 @@
 package pk.sp.pasir_stoncel_patryk.controller;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pk.sp.pasir_stoncel_patryk.dto.TransactionDTO;
 import pk.sp.pasir_stoncel_patryk.model.Transaction;
-import pk.sp.pasir_stoncel_patryk.repository.TransactionRepository;
+import pk.sp.pasir_stoncel_patryk.service.TransactionService;
 
 import java.util.List;
 
@@ -11,43 +13,47 @@ import java.util.List;
 @RequestMapping("/api/transactions")
 public class TransactionController {
 
-    @Autowired
-    private TransactionRepository transactionRepository;
+    private final TransactionService transactionService;
 
-    @GetMapping
-    public ResponseEntity<List<Transaction>> getAllTransactions() {
-        List<Transaction> transactions = transactionRepository.findAll();
-        return ResponseEntity.ok(transactions);
+    public TransactionController(TransactionService transactionService) {
+        this.transactionService = transactionService;
     }
 
+    // 1. Downloading all transactions (GET)
+    @GetMapping
+    public ResponseEntity<List<Transaction>> getAllTransactions() {
+        return ResponseEntity.ok(transactionService.getAllTransactions());
+    }
+
+    // 2. Retrieving a single transaction by ID (GET)
+    @GetMapping("/{id}")
+    public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
+        return ResponseEntity.ok(transactionService.getTransactionById(id));
+    }
+
+    // 3. Creating a new transaction (POST)
+    @PostMapping
+    public ResponseEntity<Transaction> createTransaction(
+            @Valid @RequestBody TransactionDTO transactionDTO) {
+
+        Transaction created = transactionService.createTransaction(transactionDTO);
+        return ResponseEntity.ok(created);
+    }
+
+    // 4. Updating an existing transaction (PUT)
     @PutMapping("/{id}")
-    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id,
-                                                         @RequestBody Transaction transactionDetails) {
-        Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found with id: " + id));
+    public ResponseEntity<Transaction> updateTransaction(
+            @PathVariable Long id,
+            @Valid @RequestBody TransactionDTO transactionDTO) {
 
-        transaction.setAmount(transactionDetails.getAmount());
-        transaction.setType(transactionDetails.getType());
-        transaction.setTags(transactionDetails.getTags());
-        transaction.setNotes(transactionDetails.getNotes());
-
-        Transaction updatedTransaction = transactionRepository.save(transaction);
+        Transaction updatedTransaction = transactionService.updateTransaction(id, transactionDTO);
         return ResponseEntity.ok(updatedTransaction);
     }
 
-    @PostMapping
-    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
-        Transaction savedTransaction = transactionRepository.save(transaction);
-        return ResponseEntity.ok(savedTransaction);
-    }
-
+    // 5. Deleting a transaction (DELETE)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
-        Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found with id: " + id));
-
-        transactionRepository.delete(transaction);
+        transactionService.deleteTransaction(id);
         return ResponseEntity.noContent().build();
     }
-
 }
