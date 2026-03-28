@@ -192,7 +192,7 @@ Authorization: Bearer YOUR_TOKEN
 
 ---
 
-## ➤ Update transaction
+## Update transaction
 
 **PUT** `/api/transactions/{id}`
 
@@ -223,7 +223,7 @@ Authorization: Bearer YOUR_TOKEN
 
 ---
 
-## ➤ Delete transaction
+## Delete transaction
 
 **DELETE** `/api/transactions/{id}`
 
